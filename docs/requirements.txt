@@ -1,0 +1,5 @@
+sphinx
+furo
+sphinx-autodoc-typehints
+sphinx-copybutton
+myst-parser
