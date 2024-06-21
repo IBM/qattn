@@ -3,7 +3,7 @@ from .fx import convert  # noqa: F401
 from . import nn  # noqa: F401
 from .pt2e.dynamo.backend import backends  # noqa: F401
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 def version() -> str:
