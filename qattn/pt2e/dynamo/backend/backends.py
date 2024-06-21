@@ -129,7 +129,7 @@ def _lower_linear(
         inp_scale_qdq = qdq_queue[-1]
         should_pop_qdq = inp_scale == inp_scale_qdq
         should_pop_qdq = should_pop_qdq or (
-            inp_scale_qdq.op == "get_attr"
+            (isinstance(inp_scale_qdq, fx.Node) and inp_scale_qdq.op == "get_attr")
             and torch.equal(
                 getattr(gm, inp_scale.target),
                 getattr(gm, inp_scale_qdq.target),
@@ -290,13 +290,15 @@ def _lower_sdpa(
     is_dynamic = qdq_node.target in _dynamic_ops
     if is_dynamic:
         return
-    is_quantized = qdq_node.target in _quant_ops or is_dynamic
+    is_quantized = qdq_node.target in _quant_ops
     if not (_is_per_channel() or is_quantized):
         return
     q, k, v = sdpa_node.args[:3]
     if q.target == aten.to.dtype:
         q, k, v = [x.args[0] for x in [q, k, v]]
     post_quant_node = sdpa_node.next
+    if post_quant_node.target not in _quant_ops:
+        return
     sdpa_op = torch.ops.qattn.static_attention
     post_dqd_node = post_quant_node.next
     out_scale = post_quant_node.args[1]
